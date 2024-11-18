@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpotifyFlopy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .song-list {
+            margin-top: 20px;
+        }
+        .song-item {
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid #ccc;
+            margin: 5px 0;
+        }
+        .song-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #444;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: #555;
+        }
+        
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #output {
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+        
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        ul li {
+            background: #f1f1f1;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Modal Style */
+        #infoModal {
+            display: none;
+            position: fixed;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        #infoButton {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: #0078D4;
+            cursor: pointer;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+        
+            form {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>SpotifyFlopy</h1>
+
+    <form id="credentialsForm">
+        <h2>Set Spotify API Credentials</h2>
+        <label for="client_id">Client ID:</label>
+        <input type="text" id="client_id" name="client_id" required>
+        <label for="client_secret">Client Secret:</label>
+        <input type="text" id="client_secret" name="client_secret" required>
+        <label for="redirect_uri">Redirect URI:</label>
+        <input type="text" id="redirect_uri" name="redirect_uri" value="http://localhost:5000/callback" required>
+        <button type="submit">Set Credentials</button>
+    </form>
+
+    <form id="playlistForm">
+        <h2>List Songs</h2>
+        <label for="playlist_url">Playlist URL:</label>
+        <input type="text" id="playlist_url" name="playlist_url" required>
+        <button type="submit">List Songs</button>
+    </form>
+
+    <!-- Information Button -->
+  <button id="infoButton">i</button>
+
+  <!-- Modal with Steps to Set Spotify API Credentials -->
+  <div id="infoModal">
+    <h2>Steps to Set Spotify API Credentials</h2>
+    <ul>
+      <li>Go to <a href="https://developer.spotify.com/dashboard/applications" target="_blank">Spotify Developer Dashboard</a>.</li>
+      <li>Click on <strong>Create an App</strong>.</li>
+      <li>Fill in the application details (App name, description, etc.) and click <strong>Create</strong>.</li>
+      <li>Once created, you will get your <strong>Client ID</strong> and <strong>Client Secret</strong>.</li>
+      <li>In your app, use these credentials to authenticate with Spotify's API.</li>
+    </ul>
+    <button onclick="closeInfoModal()">Close</button>
+  </div>
+
+    <div id="songList"></div>
+    <div id="output"></div>
+
+    <script>
+        const credentialsForm = document.getElementById('credentialsForm');
+        const playlistForm = document.getElementById('playlistForm');
+        const songListDiv = document.getElementById('songList');
+        const outputDiv = document.getElementById('output');
+
+        credentialsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(credentialsForm);
+            const response = await fetch('/set_credentials', { method: 'POST', body: formData });
+            const result = await response.json();
+            outputDiv.innerText = result.message || result.error;
+        });
+
+        playlistForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(playlistForm);
+            const response = await fetch('/list_songs', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.songs) {
+                songListDiv.innerHTML = result.songs.map(song =>
+                    `<button onclick="downloadSong('${song.name}', '${song.artist}')">${song.name} by ${song.artist}</button>`
+                ).join('<br>');
+            } else {
+                outputDiv.innerText = result.error;
+            }
+        });
+
+        async function downloadSong(songName, artistName) {
+            const response = await fetch('/download_song', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ song_name: songName, artist_name: artistName })
+            });
+            const result = await response.json();
+            outputDiv.innerText = result.message || result.error;
+        }
+
+        document.getElementById('infoButton').addEventListener('click', function() {
+            document.getElementById('infoModal').style.display = 'block';
+          });
+      
+          function closeInfoModal() {
+            document.getElementById('infoModal').style.display = 'none';
+          }
+    </script>
+</body>
+</html>
