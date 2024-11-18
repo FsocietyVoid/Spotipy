@@ -1,6 +1,6 @@
-#### **SpotifyFlopy: Minimal Spotify Playlist Downloader**
+# **Spotipy: Minimal Spotify Playlist Downloader**
 
-SpotifyFlopy is a simple, web-based application that allows users to download songs from any Spotify playlist by providing the playlist link. Users can set their own Spotify API credentials and download high-quality music directly to their local machines.
+Spotipy is a simple, web-based application that allows users to download songs from any Spotify playlist by providing the playlist link. Users can set their own Spotify API credentials and download high-quality music directly to their local machines.
 
 ---
 
@@ -29,8 +29,8 @@ SpotifyFlopy is a simple, web-based application that allows users to download so
 #### **Step 1: Clone the Repository**
 Clone the project to your local machine:
 ```bash
-git clone https://github.com/your-repo/SpotifyFlopy.git
-cd SpotifyFlopy
+git clone https://github.com/your-repo/Spotipy.git
+cd Spotipy
 ```
 
 #### **Step 2: Install Dependencies**
@@ -46,7 +46,7 @@ pip install yt-dlp
 #### **Step 3: Run the Application**
 Run the Flask app locally:
 ```bash
-python app.py
+python app3.py
 ```
 
 The app will be available at: [http://localhost:5000](http://localhost:5000)
